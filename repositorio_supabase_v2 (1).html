@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Repositorio Temas de Tesis — IST Tsa'chila · ELD I-2026</title>
+
+<!-- Supabase JS v2 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Excel export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f0f4fb;--sur:#fff;--brd:rgba(0,0,0,0.1);--txt:#0f1923;--mut:#5a6a7e;
+  --acc:#1a3fa8;--acc2:#c8860a;--suc:#0a7a45;--dan:#b52a20;--pur:#6b21d4;--ora:#c2410c;
+  --tl:#0e7490;--mono:'DM Mono',monospace;--sans:'Sora',sans-serif}
+html,body{height:100%;font-family:var(--sans);background:var(--bg);color:var(--txt);font-size:13px}
+
+/* ── HEADER ────────────────────────────────── */
+.hdr{background:linear-gradient(135deg,#0d1f5c,#1a3fa8);padding:7px 16px;display:flex;
+  align-items:center;gap:10px;border-bottom:3px solid var(--acc2);position:sticky;top:0;z-index:50}
+.hdr img{height:44px;border-radius:5px;flex-shrink:0;object-fit:contain;background:#fff;padding:2px}
+.hdr-c{flex:1;text-align:center}
+.hdr-t{font-size:14px;font-weight:600;color:#fff}
+.hdr-s{font-size:10px;font-family:var(--mono);color:rgba(255,255,255,.5);margin-top:2px}
+.pbtn{display:flex;align-items:center;gap:5px;background:rgba(255,200,0,.2);border:1px solid rgba(255,200,0,.5);
+  color:#ffe066;padding:5px 12px;border-radius:8px;font-size:11px;font-weight:600;
+  cursor:pointer;text-decoration:none;transition:background .15s;flex-shrink:0;white-space:nowrap}
+.pbtn:hover{background:rgba(255,200,0,.35)}
+.hbadge{font-family:var(--mono);font-size:10px;background:rgba(255,255,255,.12);
+  border:.5px solid rgba(255,255,255,.2);padding:3px 9px;border-radius:20px;color:rgba(255,255,255,.8);
+  display:flex;align-items:center;gap:5px;flex-shrink:0}
+.hbdot{width:7px;height:7px;border-radius:50%;background:#f87171;flex-shrink:0;transition:background .3s}
+.hbdot.on{background:#34d399;animation:pu 2s infinite}
+@keyframes pu{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── LAYOUT ────────────────────────────────── */
+.wrap{padding:18px;max-width:980px;margin:0 auto}
+.panel{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+
+/* ── CARDS ──────────────────────────────────── */
+.card{background:var(--sur);border:.5px solid var(--brd);border-radius:12px;
+  padding:14px 16px;display:flex;flex-direction:column;gap:8px;transition:box-shadow .15s}
+.card:hover{box-shadow:0 2px 12px rgba(0,0,0,.07)}
+.card.avail{border-left:3px solid var(--suc)}.card.taken{border-left:3px solid var(--dan);opacity:.8}
+.cid{font-family:var(--mono);font-size:10px;color:var(--mut)}
+.ctit{font-size:13px;font-weight:600;line-height:1.4}
+
+/* ── BADGES ──────────────────────────────────── */
+.bdgs{display:flex;gap:4px;flex-wrap:wrap}
+.b{font-size:10px;font-family:var(--mono);padding:2px 8px;border-radius:20px;border:.5px solid}
+.ba{background:#e8f0fe;color:#1a56db;border-color:#b4c8f8}
+.bav{background:#d1fae5;color:#065f46;border-color:#6ee7b7}
+.btk{background:#fee2e2;color:#991b1b;border-color:#fca5a5}
+.bsu{background:#ede9fe;color:#5b21b6;border-color:#c4b5fd}
+.bar{background:#fef3c7;color:#92400e;border-color:#fcd34d}
+.bim{background:#d1fae5;color:#065f46;border-color:#6ee7b7}
+.bni{background:#f1f5f9;color:#334155;border-color:#cbd5e1}
+.bpr{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
+.edit-badge{font-size:9px;font-family:var(--mono);padding:2px 6px;border-radius:10px;
+  background:#e0f2fe;color:#0369a1;border:.5px solid #7dd3fc}
+
+/* ── PILLS ───────────────────────────────────── */
+.pills{display:flex;gap:5px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;
+  padding:4px 11px;border-radius:99px;border:1.5px solid}
+.psu{background:#ede9fe;color:#5b21b6;border-color:#c4b5fd}
+.par{background:#fef3c7;color:#92400e;border-color:#fcd34d}
+.pim{background:#d1fae5;color:#065f46;border-color:#6ee7b7}
+.pni{background:#f1f5f9;color:#334155;border-color:#cbd5e1}
+.ppr{background:#fff7ed;color:#9a3412;border-color:#fed7aa;font-size:10px}
+
+/* ── BUTTONS ─────────────────────────────────── */
+.btn{font-family:var(--sans);font-size:12px;font-weight:500;padding:7px 14px;
+  border-radius:8px;border:.5px solid var(--brd);cursor:pointer;transition:all .15s;
+  background:var(--sur);color:var(--txt)}
+.btn:hover:not(:disabled){background:#eef0f5}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-p{background:var(--acc);color:#fff;border-color:var(--acc)}.btn-p:hover:not(:disabled){background:#142f8a}
+.btn-d{background:var(--dan);color:#fff;border-color:var(--dan)}.btn-d:hover{background:#8b1f17}
+.btn-g{background:#1d6f42;color:#fff;border-color:#1d6f42}.btn-g:hover{background:#155230}
+.btn-v{background:var(--pur);color:#fff;border-color:var(--pur)}.btn-v:hover{background:#5a1ab5}
+.btn-dt{background:#334155;color:#fff;border-color:#334155}
+.btn-e{background:var(--tl);color:#fff;border-color:var(--tl)}.btn-e:hover{background:#0a5f73}
+.btn-sm{padding:4px 9px;font-size:11px}
+.btn-xs{padding:3px 7px;font-size:10px}
+.lnk{background:none;border:none;cursor:pointer;font-size:11px;color:var(--acc);
+  padding:0;text-decoration:underline;font-family:var(--sans)}
+.card-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;
+  padding-top:6px;border-top:.5px solid var(--brd);margin-top:2px}
+
+/* ── STATS ───────────────────────────────────── */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.stats4{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.stat{background:var(--sur);border:.5px solid var(--brd);border-radius:10px;padding:11px 13px}
+.sn{font-size:20px;font-weight:600;font-family:var(--mono)}.sl{font-size:10px;color:var(--mut);margin-top:1px}
+.s-tot .sn{color:var(--acc)}.s-av .sn{color:var(--suc)}.s-tk .sn{color:var(--dan)}.s-pe .sn{color:var(--ora)}
+
+/* ── GRID / TABS / FORMS ─────────────────────── */
+.grid{display:flex;flex-direction:column;gap:9px}
+.tabs{display:flex;gap:2px;border-bottom:.5px solid var(--brd);margin-bottom:14px;overflow-x:auto}
+.tab{padding:7px 12px;font-size:11px;cursor:pointer;border:none;background:none;
+  color:var(--mut);font-family:var(--sans);border-bottom:2px solid transparent;margin-bottom:-.5px;white-space:nowrap}
+.tab.active{color:var(--acc);border-bottom-color:var(--acc);font-weight:500}
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:11px}
+.fl{font-size:11px;font-weight:500;color:var(--mut)}
+.fi,.fsel,.fta{font-family:var(--sans);font-size:12px;padding:8px 11px;
+  border:.5px solid var(--brd);border-radius:7px;background:var(--bg);color:var(--txt);width:100%}
+.fta{min-height:65px;resize:vertical}
+.fi:focus,.fsel:focus,.fta:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(26,63,168,.1)}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+.ropts{display:flex;gap:5px;flex-wrap:wrap}
+.ropt{display:flex;align-items:center;gap:4px;cursor:pointer;padding:5px 9px;
+  border-radius:7px;border:1.5px solid var(--brd);font-size:11px;background:var(--sur);transition:all .15s}
+.ropt input{display:none}
+.rs.sel{border-color:#c4b5fd;background:#ede9fe;color:#5b21b6}
+.ra.sel{border-color:#fcd34d;background:#fef3c7;color:#92400e}
+.ri.sel{border-color:#6ee7b7;background:#d1fae5;color:#065f46}
+.rn.sel{border-color:#cbd5e1;background:#f1f5f9;color:#334155}
+.rp.sel{border-color:#fed7aa;background:#fff7ed;color:#9a3412}
+
+/* ── ALERTS ──────────────────────────────────── */
+.alert{padding:9px 12px;border-radius:8px;font-size:11px;margin-bottom:10px}
+.ae{background:#fee2e2;color:#991b1b;border:.5px solid #fca5a5}
+.ai{background:#e8f0fe;color:#1a56db;border:.5px solid #b4c8f8}
+.as{background:#d1fae5;color:#065f46;border:.5px solid #6ee7b7}
+.aw{background:#fef3c7;color:#92400e;border:.5px solid #fcd34d}
+
+/* ── OVERLAY / MODAL ─────────────────────────── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;
+  align-items:flex-start;justify-content:center;z-index:200;padding:14px;overflow-y:auto}
+.modal{background:var(--sur);border-radius:14px;padding:22px;width:100%;
+  max-width:580px;box-shadow:0 20px 60px rgba(0,0,0,.3);margin:auto}
+.modal h3{font-size:14px;font-weight:600;margin-bottom:15px;display:flex;align-items:center;gap:7px}
+.mact{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+
+/* ── LANDING ─────────────────────────────────── */
+.landing{display:flex;flex-direction:column;align-items:center;
+  justify-content:center;min-height:calc(100vh - 76px);gap:22px}
+.rcards{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;width:100%;max-width:640px}
+.rcard{background:var(--sur);border:.5px solid var(--brd);border-radius:13px;
+  padding:20px 12px;cursor:pointer;transition:border-color .2s,transform .15s,box-shadow .15s;
+  text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.rcard:hover{border-color:var(--acc);transform:translateY(-2px);box-shadow:0 4px 16px rgba(26,63,168,.12)}
+.rico{font-size:26px}.rlbl{font-size:12px;font-weight:600}.rdsc{font-size:10px;color:var(--mut)}
+
+/* ── BOX ─────────────────────────────────────── */
+.box{background:var(--sur);border:.5px solid var(--brd);border-radius:13px;
+  padding:24px;max-width:390px;margin:24px auto}
+.box h3{font-size:14px;font-weight:600;margin-bottom:15px;text-align:center}
+
+/* ── TUTOR CARD ───────────────────────────────── */
+.tcrd{background:linear-gradient(135deg,#f5f3ff,#ede9fe);border:1.5px solid #c4b5fd;border-radius:12px;padding:15px}
+.trow{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:.5px solid #e5e0f5}
+.trow:last-child{border-bottom:none}
+.tlbl{font-size:11px;color:#7c3aed;font-weight:500;width:70px;flex-shrink:0}
+.tval{font-size:12px;font-weight:600;color:#4c1d95}
+
+/* ── CLAIMED ─────────────────────────────────── */
+.claimed{background:#ecfdf5;border:1.5px solid #6ee7b7;border-radius:12px;padding:14px}
+.cid2{font-size:10px;font-family:var(--mono);color:#059669;margin-bottom:3px}
+.ctit2{font-size:13px;font-weight:600;color:#065f46;margin-bottom:4px}
+
+/* ── MISC ────────────────────────────────────── */
+.ec{display:none;padding-top:8px;border-top:.5px solid var(--brd);margin-top:3px}
+.ec.open{display:block}
+.fr{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+.fr input,.fr select{font-family:var(--sans);font-size:12px;padding:7px 10px;
+  border:.5px solid var(--brd);border-radius:7px;background:var(--sur);color:var(--txt)}
+.fr input{flex:1;min-width:130px}
+.pin{font-family:var(--mono);background:#1e293b;color:#a5f3fc;
+  padding:3px 8px;border-radius:5px;font-size:11px;letter-spacing:2px}
+.sbanner{display:flex;align-items:center;gap:9px;padding:10px 14px;border-radius:9px;font-size:11px;border:.5px solid}
+.sb-on{background:#d1fae5;color:#065f46;border-color:#6ee7b7}
+.sb-off{background:#fef3c7;color:#92400e;border-color:#fcd34d}
+.dtbl{border:.5px solid var(--brd);border-radius:10px;overflow:hidden}
+.dtbl-hd{display:grid;grid-template-columns:1fr 130px 70px 150px;
+  background:#f8fafc;border-bottom:.5px solid var(--brd);padding:8px 13px;
+  font-size:10px;font-weight:600;color:var(--mut);font-family:var(--mono)}
+.dtbl-row{display:grid;grid-template-columns:1fr 130px 70px 150px;
+  padding:9px 13px;border-bottom:.5px solid var(--brd);font-size:11px;align-items:center}
+.dtbl-row:last-child{border-bottom:none}
+.dtbl-row:hover{background:#f8fafc}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
+.dot-ok{background:var(--suc)}.dot-no{background:var(--ora)}
+
+/* ── SPINNER ─────────────────────────────────── */
+.spinner-page{display:flex;flex-direction:column;align-items:center;
+  justify-content:center;min-height:calc(100vh - 76px);gap:14px;color:var(--mut)}
+.spin{width:38px;height:38px;border:3px solid var(--brd);border-top-color:var(--acc);
+  border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.saving{position:fixed;bottom:16px;right:16px;background:#1e293b;color:#a5f3fc;
+  font-family:var(--mono);font-size:11px;padding:6px 14px;border-radius:8px;
+  opacity:0;transition:opacity .3s;pointer-events:none;z-index:300}
+.saving.show{opacity:1}
+
+@media(max-width:620px){
+  .rcards{grid-template-columns:1fr 1fr}
+  .stats4{grid-template-columns:1fr 1fr}
+  .dtbl-hd,.dtbl-row{grid-template-columns:1fr 90px 60px}
+  .dtbl-hd>*:last-child,.dtbl-row>*:last-child{display:none}
+  .fg2,.fg3{grid-template-columns:1fr}
+  .hdr-s{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <img id="logo-ist" src="" alt="IST" onerror="this.style.display='none'">
+  <div class="hdr-c">
+    <div class="hdr-t">Repositorio de Temas de Titulación</div>
+    <div class="hdr-s">Instituto Superior Tecnológico Tsa'chila · Carrera de Electricidad · I-2026</div>
+  </div>
+  <img id="logo-eld" src="" alt="ELD" onerror="this.style.display='none'">
+  <a class="pbtn"
+     href="https://sites.google.com/tsachila.edu.ec/tecnologasuperiorenelectricida/repositorio-carrera/i-2026"
+     target="_blank" rel="noopener">🌐 Portal Electricidad</a>
+  <div class="hbadge"><div class="hbdot" id="dbdot"></div><span id="dbstatus">Conectando…</span></div>
+</div>
+
+<!-- MAIN -->
+<div class="wrap" id="main">
+  <div class="spinner-page"><div class="spin"></div>Conectando con Supabase…</div>
+</div>
+
+<!-- SAVING INDICATOR -->
+<div class="saving" id="saving-ind">💾 Guardando…</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<script>
+// ╔═══════════════════════════════════════════════╗
+// ║  CONFIGURACIÓN SUPABASE — EDITAR AQUÍ         ║
+// ╚═══════════════════════════════════════════════╝
+const SUPABASE_URL  = 'https://uwbxsmcybczdzxdofqco.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV3YnhzbWN5YmN6ZHp4ZG9mcWNvIiwicm9sZSI6ImFub24iLCJpYXQiOj';   // ← Settings → API → anon public
+
+// Logos (opcional — pegar URL directa de imagen)
+const LOGO_IST = '';
+const LOGO_ELD = '';
+
+// ══════════════════════════════════════════════
+// CONSTANTES
+// ══════════════════════════════════════════════
+const PASS = 'Electricidad2025';
+
+const AREAS = ['Instalaciones Eléctricas','Automatización Industrial','Energías Renovables',
+  'Sistemas de Potencia','Electrónica','Mantenimiento Eléctrico','Domótica',
+  'Telecomunicaciones','Seguridad Eléctrica'];
+
+const PROYECTOS = [
+  'Sistemas eléctricos integrados: Tecnologías convencionales y no convencionales aplicadas a los sectores eléctricos Industriales, comerciales y residenciales',
+  "La economía circular aplicada en energías alternativas y renovables en la carrera de Tecnología Superior en Electricidad del Instituto Tecnológico Tsa'chila"
+];
+const PROJ_SHORT = ['Sistemas Eléctricos Integrados','Economía Circular y Energías Renovables'];
+const MODS = ['Sustentación','Publicación de artículo científico'];
+const FINS = ['Con implementación física','Sin implementación física'];
+
+// ══════════════════════════════════════════════
+// INIT SUPABASE
+// ══════════════════════════════════════════════
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// ══════════════════════════════════════════════
+// ESTADO
+// ══════════════════════════════════════════════
+let S = {
+  view:'loading', topics:[], students:[], docentes:[], tutorsRevealed:false,
+  tab:'available', search:'', fArea:'',
+  student:null, claim:null, exp:new Set(),
+  fMod:'Sustentación', fFin:'Con implementación física', fProj:0,
+  tutorAuth:null, docente:null,
+  showModal:false, editingTopicId:null, docenteActingAs:null,
+  showDocModal:false, editingDocIdx:null,
+  delTopicId:null, delDocIdx:null,
+  connected:false
+};
+
+// ══════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════
+function genId(){
+  let n = S.topics.length + 1;
+  while(S.topics.find(t=>t.id==='T'+String(n).padStart(3,'0'))) n++;
+  return 'T'+String(n).padStart(3,'0');
+}
+function genPin(){return String(Math.floor(100000+Math.random()*900000));}
+function avail(){return S.topics.filter(t=>t.estado==='disponible');}
+function taken(){return S.topics.filter(t=>t.estado==='seleccionado');}
+function docTop(ced){return S.topics.filter(t=>t.docente_ced===ced);}
+function nowStr(){return new Date().toLocaleDateString('es-EC',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}
+
+function setStatus(on){
+  S.connected=on;
+  const dot=document.getElementById('dbdot');
+  const txt=document.getElementById('dbstatus');
+  if(dot) dot.className='hbdot'+(on?' on':'');
+  if(txt) txt.textContent=on?'En línea':'Sin conexión';
+}
+function showSaving(){
+  const el=document.getElementById('saving-ind');if(!el)return;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2000);
+}
+function err(id,msg){const el=document.getElementById(id);if(el)el.innerHTML=`<div class="alert ae">${msg}</div>`;}
+
+function pMod(m,big){const s=m==='Sustentación';return big?`<span class="pill ${s?'psu':'par'}">${s?'🎤':'📄'} ${m}</span>`:`<span class="b ${s?'bsu':'bar'}">${s?'🎤 Sustentación':'📄 Artículo'}</span>`;}
+function pFin(f,big){const c=f.startsWith('Con');return big?`<span class="pill ${c?'pim':'pni'}">${c?'🔧':'📐'} ${f}</span>`:`<span class="b ${c?'bim':'bni'}">${c?'🔧 Con impl.':'📐 Sin impl.'}</span>`;}
+function pProj(pi,big){const sh=PROJ_SHORT[pi]||'—';return big?`<span class="pill ppr">📁 ${sh}</span>`:`<span class="b bpr">📁 ${sh}</span>`;}
+
+// ══════════════════════════════════════════════
+// CARGA INICIAL (una sola vez)
+// ══════════════════════════════════════════════
+async function loadAll(){
+  try{
+    const [tr,sr,dr,cr]=await Promise.all([
+      sb.from('topics').select('*').order('id'),
+      sb.from('students').select('*').order('id'),
+      sb.from('docentes').select('*').order('nombre'),
+      sb.from('config').select('*')
+    ]);
+    S.topics   = tr.data||[];
+    S.students = sr.data||[];
+    S.docentes = dr.data||[];
+    const rev  = cr.data?.find(x=>x.key==='tutors_revealed');
+    S.tutorsRevealed = rev ? rev.value==='true' : false;
+    setStatus(true);
+    S.view='landing';
+    render();
+  }catch(e){
+    setStatus(false);
+    document.getElementById('main').innerHTML=
+      `<div class="spinner-page" style="color:var(--dan)">
+        ⚠️ No se pudo conectar con Supabase.<br>
+        <small style="color:var(--mut);margin-top:6px">Verifica la URL y el ANON KEY en el archivo HTML.</small>
+      </div>`;
+  }
+}
+
+// ══════════════════════════════════════════════
+// SUSCRIPCIONES TIEMPO REAL
+// ══════════════════════════════════════════════
+function setupRealtime(){
+  sb.channel('realtime-all')
+    .on('postgres_changes',{event:'*',schema:'public',table:'topics'}, ()=>reloadTopics())
+    .on('postgres_changes',{event:'*',schema:'public',table:'students'},()=>reloadStudents())
+    .on('postgres_changes',{event:'*',schema:'public',table:'docentes'},()=>reloadDocentes())
+    .on('postgres_changes',{event:'*',schema:'public',table:'config'}, ()=>reloadConfig())
+    .subscribe(status=>{setStatus(status==='SUBSCRIBED');});
+}
+
+async function reloadTopics(){
+  const{data}=await sb.from('topics').select('*').order('id');
+  S.topics=data||[];
+  // Si el estudiante activo tenía un tema, actualizar su referencia
+  if(S.student&&S.student.topic_id){
+    const st=S.students.find(x=>x.cedula===S.student.cedula);
+    if(st)S.student=st;
+  }
+  render();
+}
+async function reloadStudents(){
+  const{data}=await sb.from('students').select('*').order('id');
+  S.students=data||[];
+  if(S.student){const fresh=S.students.find(x=>x.cedula===S.student.cedula);if(fresh)S.student=fresh;}
+  render();
+}
+async function reloadDocentes(){
+  const{data}=await sb.from('docentes').select('*').order('nombre');
+  S.docentes=data||[];render();
+}
+async function reloadConfig(){
+  const{data}=await sb.from('config').select('*');
+  const rev=data?.find(x=>x.key==='tutors_revealed');
+  S.tutorsRevealed=rev?rev.value==='true':false;render();
+}
+
+// ══════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════
+function render(){
+  const el=document.getElementById('main');if(!el)return;
+  const v=S.view;
+  if(v==='landing')  el.innerHTML=rLanding();
+  else if(v==='alog')    el.innerHTML=rAlog();
+  else if(v==='admin')   el.innerHTML=rAdmin();
+  else if(v==='dlog')    el.innerHTML=rDlog();
+  else if(v==='docente') el.innerHTML=rDocente();
+  else if(v==='sreg')    el.innerHTML=rSreg();
+  else if(v==='student') el.innerHTML=rStudent();
+  else if(v==='tlog')    el.innerHTML=rTlog();
+  else if(v==='tview')   el.innerHTML=rTview();
+  attachEvents();
+}
+
+// ── LANDING ──────────────────────────────────
+function rLanding(){
+  const rev=S.tutorsRevealed;
+  return`<div class="landing">
+    <div style="text-align:center">
+      <div style="font-size:20px;font-weight:600">Repositorio de Temas de Tesis</div>
+      <div style="font-size:11px;color:var(--mut);margin-top:3px;font-family:var(--mono)">
+        ${avail().length} disponibles · ${taken().length} seleccionados · ${S.topics.length} total</div>
+    </div>
+    <div class="rcards">
+      <div class="rcard" id="r-adm"><div class="rico">🛠️</div><div class="rlbl">Coordinador</div><div class="rdsc">Gestionar temas y docentes</div></div>
+      <div class="rcard" id="r-doc"><div class="rico">👨‍🏫</div><div class="rlbl">Docente</div><div class="rdsc">Registrar y editar mi tema</div></div>
+      <div class="rcard" id="r-stu"><div class="rico">🎓</div><div class="rlbl">Estudiante</div><div class="rdsc">Seleccionar tema de tesis</div></div>
+      <div class="rcard" id="r-tut" style="${rev?'':'opacity:.45;cursor:not-allowed'}">
+        <div class="rico">${rev?'🔍':'🔒'}</div><div class="rlbl">Ver mi Tutor</div>
+        <div class="rdsc">${rev?'Consultar tutor y lectores':'Pendiente de activación'}</div>
+      </div>
+    </div>
+    ${rev?`<div class="alert as" style="max-width:520px;text-align:center">✅ Tutores activados — estudiantes con tema seleccionado pueden acceder</div>`
+         :`<div class="alert aw" style="max-width:520px;text-align:center">⏳ Los tutores se revelarán cuando Coordinación lo active</div>`}
+  </div>`;
+}
+
+// ── ADMIN LOGIN ───────────────────────────────
+function rAlog(){return`<div style="max-width:350px;margin:28px auto"><div class="box">
+  <div style="font-size:26px;text-align:center;margin-bottom:12px">🔐</div>
+  <h3>Acceso de Coordinador</h3><div id="lerr"></div>
+  <div class="fg"><label class="fl">Contraseña</label>
+    <input class="fi" type="password" id="ap" placeholder="Ingrese la contraseña" autocomplete="off"/></div>
+  <div class="mact"><button class="btn" id="b-bk">Cancelar</button>
+    <button class="btn btn-p" id="b-li">Ingresar</button></div>
+</div></div>`;}
+
+// ── ADMIN PANEL ───────────────────────────────
+function rAdmin(){
+  const av=avail().length,tk=taken().length,tab=S.tab,rev=S.tutorsRevealed;
+  const docCon=S.docentes.filter(d=>d.cedula&&docTop(d.cedula).length>0).length;
+  let list=S.topics;
+  if(tab==='available')list=list.filter(t=>t.estado==='disponible');
+  if(tab==='taken')list=list.filter(t=>t.estado==='seleccionado');
+  if(S.search){const q=S.search.toLowerCase();list=list.filter(t=>t.titulo.toLowerCase().includes(q)||t.area.toLowerCase().includes(q));}
+
+  const stHTML=S.students.map(s=>{
+    const t=S.topics.find(x=>x.id===s.topic_id);
+    return`<div class="card" style="padding:11px 14px">
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="width:28px;height:28px;border-radius:50%;background:#e8f0fe;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#1a56db;flex-shrink:0">${s.nombre.split(' ').map(w=>w[0]).slice(0,2).join('')}</div>
+        <div style="flex:1"><div style="font-size:12px;font-weight:600">${s.nombre}</div>
+          <div style="font-size:10px;font-family:var(--mono);color:var(--mut)">C.I: ${s.cedula}</div></div>
+        <span class="b btk">${t?t.id:'—'}</span>
+        <div><span class="pin">${s.pin}</span><div style="font-size:9px;color:var(--mut);text-align:center;margin-top:1px">PIN</div></div>
+      </div>
+      ${t?`<div style="font-size:10px;color:var(--mut)">📋 ${t.titulo}</div>
+        <div class="bdgs" style="margin-top:2px">${pMod(t.mod,false)}${pFin(t.fin,false)}${pProj(t.proj,false)}</div>
+        <div style="font-size:10px;color:var(--mut)">👨‍🏫 <b>${t.tutor}</b> · L1: <b>${t.l1}</b> · L2: <b>${t.l2}</b></div>`:''}
+    </div>`;
+  }).join('');
+
+  const docHTML=`
+    <div class="row" style="margin-bottom:12px">
+      <div style="font-size:12px;font-weight:600">Docentes ELD 2026-I</div>
+      <button class="btn btn-p btn-sm" id="b-new-doc">+ Agregar docente</button>
+    </div>
+    <div class="stats4" style="margin-bottom:12px">
+      <div class="stat s-tot"><div class="sn">${S.docentes.length}</div><div class="sl">Total</div></div>
+      <div class="stat s-av"><div class="sn">${docCon}</div><div class="sl">Registraron</div></div>
+      <div class="stat s-pe"><div class="sn">${S.docentes.length-docCon}</div><div class="sl">Pendientes</div></div>
+      <div class="stat s-tot"><div class="sn">${S.topics.length}</div><div class="sl">Total temas</div></div>
+    </div>
+    <div class="dtbl">
+      <div class="dtbl-hd"><div>DOCENTE</div><div>CÉDULA</div><div>TEMAS</div><div>ACCIONES</div></div>
+      ${S.docentes.length===0?`<div style="padding:30px;text-align:center;color:var(--mut)">Sin docentes registrados.</div>`
+      :S.docentes.map((d,i)=>{
+        const tc=d.cedula?docTop(d.cedula).length:0;const ok=tc>0;
+        return`<div class="dtbl-row">
+          <div style="font-size:11px;font-weight:${ok?600:400}">${d.nombre}</div>
+          <div style="font-family:var(--mono);font-size:10px;color:${d.cedula?'var(--acc)':'var(--mut)'}">${d.cedula||'—'}</div>
+          <div><span class="dot ${ok?'dot-ok':'dot-no'}"></span><span style="font-family:var(--mono);font-size:11px;color:${ok?'var(--suc)':'var(--ora)'}">${tc}</span></div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap">
+            <button class="btn btn-e btn-xs" data-edit-doc="${i}">✏️</button>
+            ${d.cedula?`<button class="btn btn-p btn-xs" data-fill-doc="${i}">📝 Llenar</button>`:''}
+            <button class="btn btn-d btn-xs" data-del-doc="${i}">🗑</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+
+  return`<div class="panel">
+    <div class="row">
+      <button class="btn" id="b-bk">← Salir</button>
+      <div style="font-size:13px;font-weight:600">Panel de Coordinador</div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap">
+        <button class="btn btn-g" id="b-xl">📊 Excel</button>
+        <button class="btn ${rev?'btn-dt':'btn-v'}" id="b-tog">${rev?'🔒 Ocultar tutores':'🔓 Activar tutores'}</button>
+        <button class="btn btn-p" id="b-add">+ Tema directo</button>
+      </div>
+    </div>
+    <div class="${rev?'sbanner sb-on':'sbanner sb-off'}">
+      <span style="font-size:16px">${rev?'✅':'⏳'}</span>
+      <div><div style="font-weight:600;font-size:11px">${rev?'Tutores VISIBLES':'Tutores OCULTOS'}</div>
+      <div style="font-size:10px;opacity:.8">${rev?'Estudiante usa cédula + PIN para ver su tutor':'Al activar, solo quienes seleccionaron tema verán su tutor'}</div></div>
+    </div>
+    <div class="tabs">
+      <button class="tab ${tab==='all'?'active':''}"       data-tab="all">Todos (${S.topics.length})</button>
+      <button class="tab ${tab==='available'?'active':''}" data-tab="available">Disponibles (${av})</button>
+      <button class="tab ${tab==='taken'?'active':''}"     data-tab="taken">Seleccionados (${tk})</button>
+      <button class="tab ${tab==='students'?'active':''}"  data-tab="students">Estudiantes (${S.students.length})</button>
+      <button class="tab ${tab==='docentes'?'active':''}"  data-tab="docentes">Docentes (${S.docentes.length})</button>
+    </div>
+    ${tab==='docentes'?docHTML
+    :tab==='students'?`<div class="grid">${S.students.length?stHTML:'<div style="text-align:center;padding:40px;color:var(--mut)">🎓 Ningún estudiante ha seleccionado tema aún</div>'}</div>`
+    :`<div class="fr"><input id="as" placeholder="Buscar…" value="${S.search}"/>
+        <select id="af"><option value="">Todas las áreas</option>${AREAS.map(a=>`<option value="${a}" ${S.fArea===a?'selected':''}>${a}</option>`).join('')}</select>
+      </div>
+      <div class="grid">${list.length?list.map(t=>rTA(t,true)).join(''):'<div style="text-align:center;padding:40px;color:var(--mut)">📭 Sin temas</div>'}</div>`}
+  </div>
+  ${S.showModal?rModalTema():''}
+  ${S.showDocModal?rModalDocente():''}
+  ${S.delTopicId?rDelTopicConfirm():''}
+  ${S.delDocIdx!==null?rDelDocConfirm():''}`;
+}
+
+// ── TARJETA TEMA ──────────────────────────────
+function rTA(t,isAdmin=false){
+  const tk=t.estado==='seleccionado';
+  const d=S.docentes.find(x=>x.cedula&&x.cedula===t.docente_ced);
+  return`<div class="card ${tk?'taken':'avail'}">
+    <div><div class="cid">${t.id} ${t.edited_at?`<span class="edit-badge">✏️ ${t.edited_at}</span>`:''}</div>
+      <div class="ctit">${t.titulo}</div></div>
+    <div class="bdgs"><span class="b ba">${t.area}</span>${pMod(t.mod,false)}${pFin(t.fin,false)}${pProj(t.proj,false)}
+      <span class="b ${tk?'btk':'bav'}">${tk?'Seleccionado':'Disponible'}</span></div>
+    <div style="font-size:11px;color:var(--mut);line-height:1.5">${t.descripcion||''}</div>
+    <div style="font-size:10px;color:var(--mut)">👨‍🏫 <b>${t.tutor}</b> · L1: <b>${t.l1}</b> · L2: <b>${t.l2}</b></div>
+    ${d?`<div style="font-size:10px;color:var(--mut)">📝 <b>${d.nombre}</b></div>`:''}
+    ${tk?`<div style="font-size:10px;color:var(--dan);font-family:var(--mono)">👤 ${t.est_nom} · ${t.fecha_sel}</div>`:''}
+    <div class="card-actions">
+      <button class="btn btn-e btn-sm" data-edit-topic="${t.id}">✏️ Editar</button>
+      ${isAdmin?`<button class="btn btn-d btn-sm" data-del="${t.id}">🗑 Eliminar</button>`:''}
+    </div>
+  </div>`;
+}
+
+// ── MODAL TEMA ────────────────────────────────
+function rModalTema(){
+  const editing=S.editingTopicId?S.topics.find(x=>x.id===S.editingTopicId):null;
+  const mt=editing?editing.mod:S.fMod;
+  const fi=editing?editing.fin:S.fFin;
+  const pr=editing?(editing.proj??0):S.fProj;
+  const actCed=S.docenteActingAs||(S.docente?S.docente.cedula:null);
+  const d=actCed?S.docentes.find(x=>x.cedula===actCed):null;
+  return`<div class="overlay" id="ov">
+    <div class="modal">
+      <h3>${editing?`✏️ Editar tema — ${editing.id}`:'+ Publicar nuevo tema de tesis'}</h3>
+      ${d?`<div class="alert ai" style="font-size:11px">${editing?'Editando tema de':'Registrando para'} <b>${d.nombre}</b></div>`:''}
+      <div class="fg"><label class="fl">Título del tema *</label>
+        <input class="fi" id="f-tit" placeholder="Título completo…" value="${editing?editing.titulo.replace(/"/g,'&quot;'):''}"/></div>
+      <div class="fg2">
+        <div class="fg"><label class="fl">Área temática *</label>
+          <select class="fsel" id="f-area"><option value="">Seleccionar…</option>
+            ${AREAS.map(a=>`<option ${editing&&editing.area===a?'selected':''}>${a}</option>`).join('')}</select></div>
+        <div class="fg"><label class="fl">Palabras clave</label>
+          <input class="fi" id="f-kw" placeholder="kw1, kw2…" value="${editing?editing.kw||'':''}"/></div>
+      </div>
+      <div class="fg"><label class="fl">Descripción</label>
+        <textarea class="fta" id="f-desc" placeholder="Alcance y objetivos…">${editing?editing.descripcion||'':''}</textarea></div>
+      <div class="fg"><label class="fl">Proyecto de investigación *</label>
+        <div class="ropts">${PROYECTOS.map((p,i)=>`<label class="ropt rp ${pr===i?'sel':''}" data-proj="${i}"><input type="radio" name="proj" value="${i}" ${pr===i?'checked':''}/>📁 ${PROJ_SHORT[i]}</label>`).join('')}</div>
+        <div id="proj-full" style="font-size:10px;color:var(--mut);margin-top:4px;padding:5px 9px;background:#fff7ed;border-radius:6px;line-height:1.5">${PROYECTOS[pr]}</div>
+      </div>
+      <div class="fg"><label class="fl">Modalidad *</label>
+        <div class="ropts">${MODS.map(m=>`<label class="ropt ${m==='Sustentación'?'rs':'ra'} ${mt===m?'sel':''}" data-mod="${m}">${m==='Sustentación'?'🎤':'📄'} ${m}</label>`).join('')}</div>
+      </div>
+      <div class="fg"><label class="fl">Finalidad *</label>
+        <div class="ropts">${FINS.map(f=>`<label class="ropt ${f.startsWith('Con')?'ri':'rn'} ${fi===f?'sel':''}" data-fin="${f}">${f.startsWith('Con')?'🔧':'📐'} ${f}</label>`).join('')}</div>
+      </div>
+      <div class="fg3">
+        <div class="fg"><label class="fl">Tutor *</label>
+          <input class="fi" id="f-tutor" placeholder="Ing. Nombre Apellido" value="${editing?editing.tutor.replace(/"/g,'&quot;'):(d?d.nombre:'')}"/></div>
+        <div class="fg"><label class="fl">Lector 1 *</label>
+          <input class="fi" id="f-l1" value="${editing?editing.l1.replace(/"/g,'&quot;'):''}"/></div>
+        <div class="fg"><label class="fl">Lector 2 *</label>
+          <input class="fi" id="f-l2" value="${editing?editing.l2.replace(/"/g,'&quot;'):''}"/></div>
+      </div>
+      <div id="merr"></div>
+      <div class="mact"><button class="btn" id="b-cm">Cancelar</button>
+        <button class="btn btn-p" id="b-sv">${editing?'💾 Guardar cambios':'Publicar tema'}</button></div>
+    </div>
+  </div>`;
+}
+
+// ── MODAL DOCENTE ─────────────────────────────
+function rModalDocente(){
+  const isEdit=S.editingDocIdx!==null;
+  const d=isEdit?S.docentes[S.editingDocIdx]:{nombre:'',cedula:''};
+  return`<div class="overlay" id="ov-doc">
+    <div class="modal" style="max-width:430px">
+      <h3>${isEdit?'✏️ Editar docente':'+ Agregar docente'}</h3>
+      <div class="alert ai" style="font-size:11px">La <b>cédula</b> es usuario y contraseña del docente.</div>
+      <div class="fg"><label class="fl">Nombre completo *</label>
+        <input class="fi" id="doc-nom" placeholder="APELLIDO NOMBRE" value="${d.nombre}" style="text-transform:uppercase"/></div>
+      <div class="fg"><label class="fl">Cédula * (10 dígitos)</label>
+        <input class="fi" id="doc-ced" placeholder="0XXXXXXXXX" maxlength="10" value="${d.cedula}" style="font-family:var(--mono)"/></div>
+      <div id="doc-err"></div>
+      <div class="mact"><button class="btn" id="b-doc-cancel">Cancelar</button>
+        <button class="btn btn-p" id="b-doc-save">${isEdit?'💾 Guardar':'✅ Agregar'}</button></div>
+    </div>
+  </div>`;
+}
+
+function rDelTopicConfirm(){
+  const t=S.topics.find(x=>x.id===S.delTopicId);
+  return`<div class="overlay"><div class="modal" style="max-width:380px">
+    <h3>🗑️ Eliminar tema</h3>
+    <p style="font-size:12px;margin-bottom:12px">¿Eliminar <b>${t?t.id:''}</b>: "${t?t.titulo.substring(0,50):''}…"?</p>
+    ${t&&t.estado==='seleccionado'?`<div class="alert ae">⚠️ Este tema tiene un estudiante asignado.</div>`:''}
+    <div class="mact"><button class="btn" id="b-del-t-no">Cancelar</button>
+      <button class="btn btn-d" id="b-del-t-si">Sí, eliminar</button></div>
+  </div></div>`;
+}
+function rDelDocConfirm(){
+  const d=S.docentes[S.delDocIdx];
+  const tc=d&&d.cedula?docTop(d.cedula).length:0;
+  return`<div class="overlay"><div class="modal" style="max-width:380px">
+    <h3>🗑️ Eliminar docente</h3>
+    <p style="font-size:12px;margin-bottom:12px">¿Eliminar a <b>${d?d.nombre:''}</b>?</p>
+    ${tc>0?`<div class="alert aw">⚠️ Tiene <b>${tc}</b> tema(s). Los temas permanecerán en el sistema.</div>`:''}
+    <div class="mact"><button class="btn" id="b-del-d-no">Cancelar</button>
+      <button class="btn btn-d" id="b-del-d-si">Sí, eliminar</button></div>
+  </div></div>`;
+}
+
+// ── DOCENTE LOGIN ─────────────────────────────
+function rDlog(){return`<div style="max-width:370px;margin:26px auto"><div class="box">
+  <div style="font-size:24px;text-align:center;margin-bottom:12px">👨‍🏫</div>
+  <h3>Acceso de Docente</h3>
+  <div class="alert ai" style="font-size:11px;margin-bottom:13px">Ingresa tu <b>cédula</b> como usuario y contraseña.</div>
+  <div id="dlerr"></div>
+  <div class="fg"><label class="fl">Cédula — usuario</label>
+    <input class="fi" id="dl-u" placeholder="0XXXXXXXXX" maxlength="10" style="font-family:var(--mono)"/></div>
+  <div class="fg"><label class="fl">Cédula — contraseña</label>
+    <input class="fi" id="dl-p" type="password" placeholder="0XXXXXXXXX" maxlength="10" style="font-family:var(--mono)"/></div>
+  <div class="mact"><button class="btn" id="b-bk">Cancelar</button>
+    <button class="btn btn-p" id="b-dl">Ingresar →</button></div>
+</div></div>`;}
+
+// ── DOCENTE PANEL ─────────────────────────────
+function rDocente(){
+  const d=S.docente;if(!d)return'';
+  const myTopics=docTop(d.cedula);
+  return`<div class="panel">
+    <div class="row">
+      <button class="btn" id="b-bk">← Salir</button>
+      <div style="font-size:12px;font-weight:600">👨‍🏫 ${d.nombre}</div>
+      <button class="btn btn-p" id="b-doc-add-tema">+ Registrar tema</button>
+    </div>
+    <div class="${myTopics.length>0?'alert as':'alert aw'}" style="font-size:11px">
+      ${myTopics.length>0?`✅ Has registrado <b>${myTopics.length}</b> tema(s). Puedes editarlos con el botón ✏️.`
+      :'⏳ Aún no has registrado ningún tema. Haz clic en "+ Registrar tema".'}
+    </div>
+    <div class="grid">
+      ${myTopics.length?myTopics.map(t=>rTA(t,false)).join(''):'<div style="text-align:center;padding:50px;color:var(--mut)">📭 Sin temas aún</div>'}
+    </div>
+  </div>${S.showModal?rModalTema():''}`;
+}
+
+// ── STUDENT REG ───────────────────────────────
+function rSreg(){return`<div style="max-width:380px;margin:26px auto"><div class="box">
+  <div style="font-size:24px;text-align:center;margin-bottom:11px">🎓</div>
+  <h3>Acceso de Estudiante</h3>
+  <div id="rerr"></div>
+  <div class="alert ai" style="margin-bottom:12px;font-size:11px">
+    Recibirás un <b>PIN de 6 dígitos</b>. Guárdalo para consultar tu tutor.</div>
+  <div class="fg"><label class="fl">Nombre completo *</label>
+    <input class="fi" id="s-n" placeholder="Ej: Ana María Torres Pérez"/></div>
+  <div class="fg"><label class="fl">Cédula * (10 dígitos)</label>
+    <input class="fi" id="s-c" placeholder="0XXXXXXXXX" maxlength="10" style="font-family:var(--mono)"/></div>
+  <div class="mact"><button class="btn" id="b-bk">Cancelar</button>
+    <button class="btn btn-p" id="b-en">Ingresar →</button></div>
+</div></div>`;}
+
+// ── STUDENT PANEL ─────────────────────────────
+function rStudent(){
+  const st=S.student;
+  const myT=st.topic_id?S.topics.find(t=>t.id===st.topic_id):null;
+  let list=avail();
+  if(S.search){const q=S.search.toLowerCase();list=list.filter(t=>t.titulo.toLowerCase().includes(q)||t.area.toLowerCase().includes(q));}
+  if(S.fArea)list=list.filter(t=>t.area===S.fArea);
+  return`<div class="panel">
+    <div class="row">
+      <button class="btn" id="b-bk">← Salir</button>
+      <div style="font-size:12px"><span style="color:var(--mut)">Estudiante:</span><b style="margin-left:4px">${st.nombre}</b></div>
+      <div>PIN: <span class="pin">${st.pin}</span></div>
+    </div>
+    ${myT?`<div class="claimed">
+      <div class="cid2">✓ TEMA SELECCIONADO · ${myT.id}</div>
+      <div class="ctit2">${myT.titulo}</div>
+      <div style="font-size:11px;color:#047857">${myT.area}</div>
+      <div class="pills" style="margin-top:8px">${pMod(myT.mod,true)}${pFin(myT.fin,true)}${pProj(myT.proj,true)}</div>
+      <div style="font-size:11px;color:#047857;margin-top:7px">Seleccionado el ${st.fecha}.</div>
+      <div class="alert ai" style="margin-top:9px;margin-bottom:0;font-size:11px">
+        Cuando Coordinación active tutores, usa <b>cédula + PIN ${st.pin}</b> en "Ver mi Tutor".</div>
+    </div>`:`<div class="alert ai" style="font-size:11px">Selecciona un tema. Una vez confirmado quedará bloqueado para los demás.</div>`}
+    <div class="stats" style="grid-template-columns:1fr 1fr">
+      <div class="stat s-av"><div class="sn">${avail().length}</div><div class="sl">Disponibles</div></div>
+      <div class="stat s-tk"><div class="sn">${taken().length}</div><div class="sl">Seleccionados</div></div>
+    </div>
+    ${!myT?`<div class="fr">
+      <input id="ss" placeholder="Buscar tema…" value="${S.search}"/>
+      <select id="sf"><option value="">Todas las áreas</option>
+        ${AREAS.map(a=>`<option value="${a}" ${S.fArea===a?'selected':''}>${a}</option>`).join('')}</select>
+    </div>
+    <div class="grid">${list.length?list.map(t=>rTS(t)).join(''):'<div style="text-align:center;padding:40px;color:var(--mut)">🔍 Sin temas disponibles</div>'}</div>`:''}
+  </div>${S.claim?rClaim():''}`;
+}
+
+function rTS(t){
+  const ex=S.exp.has(t.id);
+  return`<div class="card avail"><div class="cid">${t.id}</div><div class="ctit">${t.titulo}</div>
+    <div class="bdgs"><span class="b ba">${t.area}</span><span class="b bav">Disponible</span></div>
+    <div class="pills">${pMod(t.mod,true)}${pFin(t.fin,true)}${pProj(t.proj,true)}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:7px">
+      <button class="lnk" data-exp="${t.id}">${ex?'▲ Ocultar':'▼ Ver detalles'}</button>
+      <button class="btn btn-p btn-sm" data-claim="${t.id}">Seleccionar →</button>
+    </div>
+    <div class="ec ${ex?'open':''}">
+      <div style="font-size:11px;color:var(--mut);line-height:1.5;margin-top:7px">${t.descripcion||''}</div>
+      <div style="font-size:10px;color:var(--mut);margin-top:3px">Palabras clave: <b>${t.kw||''}</b></div>
+      <div style="font-size:10px;color:var(--mut);margin-top:2px">Proyecto: <b>${PROYECTOS[t.proj]||''}</b></div>
+    </div>
+  </div>`;
+}
+
+function rClaim(){
+  const t=S.topics.find(x=>x.id===S.claim);if(!t)return'';
+  return`<div class="overlay"><div class="modal" style="max-width:450px">
+    <h3>Confirmar selección de tema</h3>
+    <div class="alert aw" style="font-size:11px">⚠️ Acción definitiva. El tema quedará bloqueado para los demás.</div>
+    <div style="background:var(--bg);border-radius:9px;padding:13px;margin:12px 0">
+      <div class="cid">${t.id}</div>
+      <div style="font-size:13px;font-weight:600;margin:4px 0">${t.titulo}</div>
+      <div style="font-size:11px;color:var(--mut);margin-bottom:8px">${t.area}</div>
+      <div class="pills">${pMod(t.mod,true)}${pFin(t.fin,true)}${pProj(t.proj,true)}</div>
+    </div>
+    <div class="mact"><button class="btn" id="b-cc">Cancelar</button>
+      <button class="btn btn-p" id="b-ok" data-tid="${t.id}">✅ Confirmar selección</button></div>
+  </div></div>`;
+}
+
+// ── VER TUTOR ─────────────────────────────────
+function rTlog(){
+  const rev=S.tutorsRevealed;
+  return`<div style="max-width:350px;margin:26px auto"><div class="box">
+    <div style="font-size:24px;text-align:center;margin-bottom:11px">🔍</div>
+    <h3>Ver mi Tutor de Tesis</h3>
+    ${!rev?`<div class="alert aw" style="font-size:11px">⏳ Coordinación aún no ha activado la información de tutores.</div>
+      <div class="mact"><button class="btn" id="b-bk">Volver</button></div>`
+    :`<div id="terr"></div>
+      <div class="alert ai" style="margin-bottom:13px;font-size:11px">Ingresa tu <b>cédula</b> y el <b>PIN de 6 dígitos</b>. Solo funciona si tienes un tema seleccionado.</div>
+      <div class="fg"><label class="fl">Cédula</label><input class="fi" id="tc" placeholder="0XXXXXXXXX" maxlength="10" style="font-family:var(--mono)"/></div>
+      <div class="fg"><label class="fl">PIN (6 dígitos)</label><input class="fi" id="tp" placeholder="XXXXXX" maxlength="6" type="password" style="font-family:var(--mono)"/></div>
+      <div class="mact"><button class="btn" id="b-bk">Cancelar</button>
+        <button class="btn btn-p" id="b-tl">Ver mi tutor →</button></div>`}
+  </div></div>`;
+}
+
+function rTview(){
+  const a=S.tutorAuth;if(!a)return'';
+  const t=S.topics.find(x=>x.id===a.topic_id);
+  return`<div style="max-width:460px;margin:22px auto"><div class="panel">
+    <div class="row"><button class="btn" id="b-bk">← Salir</button><div style="font-size:12px"><b>${a.nombre}</b></div></div>
+    <div class="claimed">
+      <div class="cid2">✓ MI TEMA · ${a.topic_id}</div>
+      <div class="ctit2">${t?t.titulo:'—'}</div>
+      <div style="font-size:11px;color:#047857">${t?t.area:''} · ${a.fecha}</div>
+      ${t?`<div class="pills" style="margin-top:7px">${pMod(t.mod,true)}${pFin(t.fin,true)}${pProj(t.proj,true)}</div>`:''}
+    </div>
+    <div class="tcrd">
+      <div style="font-size:13px;font-weight:600;color:#5b21b6;margin-bottom:10px">👨‍🏫 Equipo de Titulación</div>
+      ${t?`<div class="trow"><span class="tlbl">Tutor</span><span class="tval">${t.tutor}</span></div>
+        <div class="trow"><span class="tlbl">Lector 1</span><span class="tval">${t.l1}</span></div>
+        <div class="trow"><span class="tlbl">Lector 2</span><span class="tval">${t.l2}</span></div>`:'<div class="trow"><span class="tval" style="color:var(--mut)">Sin información</span></div>'}
+    </div>
+    <div class="alert ai" style="margin-bottom:0;font-size:11px">Para consultas comunícate con tu tutor o Coordinación del IST Tsa'chila.</div>
+  </div></div>`;
+}
+
+// ══════════════════════════════════════════════
+// EXCEL
+// ══════════════════════════════════════════════
+function dlExcel(){
+  try{
+    if(typeof XLSX==='undefined'){alert('Librería aún cargando. Intenta en un momento.');return;}
+    const r=[['ID','Título','Área','Proyecto','Modalidad','Finalidad','Estado','Estudiante','Cédula Est.','Fecha Sel.','Tutor','Lector 1','Lector 2','Docente','Última edición']];
+    S.topics.forEach(t=>{
+      const d=S.docentes.find(x=>x.cedula&&x.cedula===t.docente_ced);
+      r.push([t.id,t.titulo,t.area,PROYECTOS[t.proj]||'',t.mod,t.fin,
+        t.estado==='seleccionado'?'Seleccionado':'Disponible',
+        t.est_nom||'',t.est_id||'',t.fecha_sel||'',t.tutor,t.l1,t.l2,d?d.nombre:'',t.edited_at||'']);
+    });
+    const ws=XLSX.utils.aoa_to_sheet(r);
+    ws['!cols']=[{wch:7},{wch:55},{wch:22},{wch:45},{wch:28},{wch:24},{wch:12},{wch:28},{wch:13},{wch:18},{wch:28},{wch:25},{wch:25},{wch:30},{wch:16}];
+    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,'Temas',ws);
+    const r2=[['Nombre','Cédula','PIN','Tema ID','Fecha']];
+    S.students.forEach(s=>r2.push([s.nombre,s.cedula,s.pin,s.topic_id||'',s.fecha||'']));
+    const ws2=XLSX.utils.aoa_to_sheet(r2);ws2['!cols']=[{wch:32},{wch:13},{wch:9},{wch:8},{wch:20}];
+    XLSX.utils.book_append_sheet(wb,'Estudiantes',ws2);
+    const r3=[['Docente','Cédula','Temas','Estado']];
+    S.docentes.forEach(d=>{const tc=d.cedula?docTop(d.cedula).length:0;r3.push([d.nombre,d.cedula||'—',tc,tc>0?'Registrado':'Pendiente']);});
+    const ws3=XLSX.utils.aoa_to_sheet(r3);ws3['!cols']=[{wch:36},{wch:13},{wch:9},{wch:12}];
+    XLSX.utils.book_append_sheet(wb,'Docentes',ws3);
+    const out=XLSX.write(wb,{bookType:'xlsx',type:'base64'});
+    const a=document.createElement('a');
+    a.href='data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,'+out;
+    a.download=`Temas_ELD_${new Date().toISOString().slice(0,10)}.xlsx`;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+  }catch(e){alert('Error Excel: '+e.message);}
+}
+
+// ══════════════════════════════════════════════
+// GUARDAR TEMA (Supabase)
+// ══════════════════════════════════════════════
+async function guardarTema(){
+  const tit=document.getElementById('f-tit')?.value.trim();
+  const area=document.getElementById('f-area')?.value;
+  const tutor=document.getElementById('f-tutor')?.value.trim();
+  const l1=document.getElementById('f-l1')?.value.trim();
+  const l2=document.getElementById('f-l2')?.value.trim();
+  if(!tit||!area||!tutor||!l1||!l2){err('merr','Completa todos los campos obligatorios (*)');return;}
+
+  showSaving();
+  const actCed=S.docenteActingAs||(S.docente?S.docente.cedula:null);
+  const payload={
+    titulo:tit,area,
+    descripcion:document.getElementById('f-desc')?.value.trim()||'',
+    tutor,l1,l2,proj:S.fProj,mod:S.fMod,fin:S.fFin,
+    kw:document.getElementById('f-kw')?.value.trim()||'',
+    edited_at:nowStr()
+  };
+
+  if(S.editingTopicId){
+    await sb.from('topics').update(payload).eq('id',S.editingTopicId);
+  }else{
+    payload.id=genId();payload.docente_ced=actCed||'';
+    payload.estado='disponible';payload.est_id=null;payload.est_nom=null;payload.fecha_sel=null;
+    await sb.from('topics').insert(payload);
+  }
+  S.showModal=false;S.editingTopicId=null;S.docenteActingAs=null;
+  await reloadTopics();
+}
+
+// ══════════════════════════════════════════════
+// EVENTOS
+// ══════════════════════════════════════════════
+function attachEvents(){
+  const on=(id,ev,fn)=>{const el=document.getElementById(id);if(el)el.addEventListener(ev,fn);};
+
+  on('r-adm','click',()=>{S.view='alog';render();});
+  on('r-doc','click',()=>{S.view='dlog';render();});
+  on('r-stu','click',()=>{S.view='sreg';render();});
+  on('r-tut','click',()=>{if(S.tutorsRevealed){S.view='tlog';render();}});
+  on('b-bk','click',()=>{S.view='landing';S.student=null;S.tutorAuth=null;S.docente=null;
+    S.docenteActingAs=null;S.showModal=false;S.editingTopicId=null;render();});
+
+  on('b-li','click',()=>{
+    if(document.getElementById('ap')?.value.trim()===PASS){S.view='admin';S.tab='available';render();}
+    else err('lerr','Contraseña incorrecta');
+  });
+  on('ap','keydown',e=>{if(e.key==='Enter')document.getElementById('b-li')?.click();});
+
+  on('b-add','click',()=>{S.fMod='Sustentación';S.fFin='Con implementación física';S.fProj=0;S.docenteActingAs=null;S.editingTopicId=null;S.showModal=true;render();});
+  on('b-xl','click',dlExcel);
+  on('b-tog','click',async()=>{
+    S.tutorsRevealed=!S.tutorsRevealed;showSaving();
+    await sb.from('config').upsert({key:'tutors_revealed',value:String(S.tutorsRevealed)});
+    render();
+  });
+  on('as','input',e=>{S.search=e.target.value;render();});
+  on('af','change',e=>{S.fArea=e.target.value;render();});
+  document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{S.tab=btn.dataset.tab;S.search='';S.fArea='';render();}));
+
+  // Eliminar tema
+  document.querySelectorAll('[data-del]').forEach(btn=>btn.addEventListener('click',()=>{S.delTopicId=btn.dataset.del;render();}));
+  on('b-del-t-no','click',()=>{S.delTopicId=null;render();});
+  on('b-del-t-si','click',async()=>{
+    const t=S.topics.find(x=>x.id===S.delTopicId);
+    if(t&&t.estado==='seleccionado'){
+      await sb.from('students').update({topic_id:null,fecha:null}).eq('topic_id',S.delTopicId);
+    }
+    await sb.from('topics').delete().eq('id',S.delTopicId);
+    S.delTopicId=null;await reloadTopics();await reloadStudents();
+  });
+
+  // Editar tema
+  document.querySelectorAll('[data-edit-topic]').forEach(btn=>btn.addEventListener('click',()=>{
+    const t=S.topics.find(x=>x.id===btn.dataset.editTopic);if(!t)return;
+    S.editingTopicId=t.id;S.fMod=t.mod;S.fFin=t.fin;S.fProj=t.proj??0;
+    if(S.docente)S.docenteActingAs=S.docente.cedula;
+    S.showModal=true;render();
+  }));
+
+  // Gestión docentes
+  on('b-new-doc','click',()=>{S.editingDocIdx=null;S.showDocModal=true;render();});
+  document.querySelectorAll('[data-edit-doc]').forEach(btn=>btn.addEventListener('click',()=>{S.editingDocIdx=parseInt(btn.dataset.editDoc);S.showDocModal=true;render();}));
+  document.querySelectorAll('[data-del-doc]').forEach(btn=>btn.addEventListener('click',()=>{S.delDocIdx=parseInt(btn.dataset.delDoc);render();}));
+  document.querySelectorAll('[data-fill-doc]').forEach(btn=>btn.addEventListener('click',()=>{
+    const i=parseInt(btn.dataset.fillDoc);const d=S.docentes[i];if(!d||!d.cedula)return;
+    S.docenteActingAs=d.cedula;S.fMod='Sustentación';S.fFin='Con implementación física';S.fProj=0;S.editingTopicId=null;S.showModal=true;render();
+  }));
+
+  on('b-del-d-no','click',()=>{S.delDocIdx=null;render();});
+  on('b-del-d-si','click',async()=>{
+    const d=S.docentes[S.delDocIdx];if(!d)return;
+    showSaving();await sb.from('docentes').delete().eq('cedula',d.cedula);
+    S.delDocIdx=null;await reloadDocentes();
+  });
+
+  on('b-doc-cancel','click',()=>{S.showDocModal=false;S.editingDocIdx=null;render();});
+  on('ov-doc','click',e=>{if(e.target.id==='ov-doc'){S.showDocModal=false;S.editingDocIdx=null;render();}});
+  on('b-doc-save','click',async()=>{
+    const nom=document.getElementById('doc-nom')?.value.trim().toUpperCase();
+    const ced=document.getElementById('doc-ced')?.value.trim();
+    if(!nom){err('doc-err','El nombre es obligatorio');return;}
+    if(!ced||ced.length<6){err('doc-err','La cédula debe tener al menos 6 dígitos');return;}
+    const dupIdx=S.docentes.findIndex((d,i)=>d.cedula===ced&&i!==S.editingDocIdx);
+    if(dupIdx>=0){err('doc-err',`Esa cédula ya está asignada a <b>${S.docentes[dupIdx].nombre}</b>`);return;}
+    showSaving();
+    if(S.editingDocIdx!==null){
+      const old=S.docentes[S.editingDocIdx];
+      await sb.from('docentes').update({nombre:nom,cedula:ced}).eq('id',old.id);
+    }else{
+      await sb.from('docentes').insert({nombre:nom,cedula:ced});
+    }
+    S.showDocModal=false;S.editingDocIdx=null;await reloadDocentes();
+  });
+
+  on('ov','click',e=>{if(e.target.id==='ov'){S.showModal=false;S.editingTopicId=null;S.docenteActingAs=null;render();}});
+  on('b-cm','click',()=>{S.showModal=false;S.editingTopicId=null;S.docenteActingAs=null;render();});
+  on('b-sv','click',guardarTema);
+
+  document.querySelectorAll('[data-proj]').forEach(lbl=>lbl.addEventListener('click',()=>{
+    S.fProj=parseInt(lbl.dataset.proj);
+    document.querySelectorAll('[data-proj]').forEach(l=>{l.className=`ropt rp${parseInt(l.dataset.proj)===S.fProj?' sel':''}`;});
+    const pf=document.getElementById('proj-full');if(pf)pf.textContent=PROYECTOS[S.fProj];
+  }));
+  document.querySelectorAll('[data-mod]').forEach(lbl=>lbl.addEventListener('click',()=>{
+    S.fMod=lbl.dataset.mod;document.querySelectorAll('[data-mod]').forEach(l=>{const m=l.dataset.mod;l.className=`ropt ${m==='Sustentación'?'rs':'ra'}${m===S.fMod?' sel':''}`;});
+  }));
+  document.querySelectorAll('[data-fin]').forEach(lbl=>lbl.addEventListener('click',()=>{
+    S.fFin=lbl.dataset.fin;document.querySelectorAll('[data-fin]').forEach(l=>{const f=l.dataset.fin;l.className=`ropt ${f.startsWith('Con')?'ri':'rn'}${f===S.fFin?' sel':''}`;});
+  }));
+
+  on('b-dl','click',()=>{
+    const u=document.getElementById('dl-u')?.value.trim();
+    const p=document.getElementById('dl-p')?.value.trim();
+    if(!u||!p){err('dlerr','Ingresa usuario y contraseña');return;}
+    if(u!==p){err('dlerr','El usuario y la contraseña no coinciden');return;}
+    const d=S.docentes.find(x=>x.cedula===u);
+    if(!d){err('dlerr','Cédula no encontrada. Contacta a Coordinación.');return;}
+    S.docente=d;S.view='docente';render();
+  });
+  on('b-doc-add-tema','click',()=>{S.fMod='Sustentación';S.fFin='Con implementación física';S.fProj=0;S.editingTopicId=null;S.showModal=true;render();});
+
+  on('b-en','click',async()=>{
+    const nom=document.getElementById('s-n')?.value.trim();
+    const ced=document.getElementById('s-c')?.value.trim();
+    if(!nom||ced.length<10){err('rerr','Nombre completo y cédula válida (10 dígitos) requeridos');return;}
+    let st=S.students.find(s=>s.cedula===ced);
+    if(!st){
+      const pin=genPin();
+      const{data}=await sb.from('students').insert({nombre:nom,cedula:ced,pin,topic_id:null,fecha:null}).select().single();
+      st=data;
+      await reloadStudents();
+      st=S.students.find(s=>s.cedula===ced)||st;
+    }
+    S.student=st;S.view='student';S.search='';S.fArea='';render();
+  });
+  on('s-c','keydown',e=>{if(e.key==='Enter')document.getElementById('b-en')?.click();});
+
+  document.querySelectorAll('[data-claim]').forEach(btn=>btn.addEventListener('click',()=>{if(S.student?.topic_id)return;S.claim=btn.dataset.claim;render();}));
+  on('b-cc','click',()=>{S.claim=null;render();});
+  on('b-ok','click',async()=>{
+    const tid=document.getElementById('b-ok')?.dataset.tid;
+    const t=S.topics.find(x=>x.id===tid);
+    if(!t||t.estado==='seleccionado'){S.claim=null;render();return;}
+    const f=nowStr();showSaving();
+    await sb.from('topics').update({estado:'seleccionado',est_id:S.student.cedula,est_nom:S.student.nombre,fecha_sel:f}).eq('id',tid);
+    await sb.from('students').update({topic_id:tid,fecha:f}).eq('cedula',S.student.cedula);
+    await reloadTopics();await reloadStudents();
+    S.student=S.students.find(x=>x.cedula===S.student.cedula)||S.student;
+    S.claim=null;render();
+  });
+
+  document.querySelectorAll('[data-exp]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.exp;if(S.exp.has(id))S.exp.delete(id);else S.exp.add(id);render();}));
+  on('ss','input',e=>{S.search=e.target.value;render();});
+  on('sf','change',e=>{S.fArea=e.target.value;render();});
+
+  on('b-tl','click',()=>{
+    const ced=document.getElementById('tc')?.value.trim();
+    const pin=document.getElementById('tp')?.value.trim();
+    const st=S.students.find(s=>s.cedula===ced&&s.pin===pin);
+    if(!st){err('terr','Cédula o PIN incorrectos.');return;}
+    if(!st.topic_id){err('terr','⚠️ Aún no tienes un tema seleccionado. Ingresa como Estudiante primero.');return;}
+    S.tutorAuth=st;S.view='tview';render();
+  });
+}
+
+// ══════════════════════════════════════════════
+// INICIO
+// ══════════════════════════════════════════════
+if(LOGO_IST)document.getElementById('logo-ist').src=LOGO_IST;
+if(LOGO_ELD)document.getElementById('logo-eld').src=LOGO_ELD;
+loadAll().then(()=>setupRealtime());
+</script>
+</body>
+</html>
